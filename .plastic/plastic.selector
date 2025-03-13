@@ -1,0 +1,4 @@
+repository "Stack Rider 2025-03-04_14-51-45/Stack Rider@18968022264550@cloud"
+  path "/"
+    br "/main"
+    co "/main"
