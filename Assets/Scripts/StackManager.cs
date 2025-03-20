@@ -1,9 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class StackManager : MonoBehaviour
 {
@@ -13,17 +10,17 @@ public class StackManager : MonoBehaviour
     public LogicScript logic;
 
     float jumpHeight = 1f;
-    float stackCount = 0;
     float objHeight = 1f;
     List<Transform> stackList = new List<Transform>();
 
     public float rotateSpeed = 5f;
-
+    private PlayerMovement playerMovement;
 
     void Start() {
         GameObject firstBall = Instantiate(ballPrefab, transform);
         firstBall.transform.localPosition = new Vector3(0, 0.5f, 0);
         stackList.Add(firstBall.transform);
+        playerMovement = player.GetComponent<PlayerMovement>();
     }
 
     void Update() {
@@ -36,8 +33,8 @@ public class StackManager : MonoBehaviour
     {
         if (other.CompareTag("Ball")) {
             AudioManagement.Vibrate();
-            other.tag = "Untagged";
             Transform t = other.transform;
+            t.tag = "Untagged"; 
             t.SetParent(this.transform);
 
             foreach (Transform ball in stackList) {
@@ -47,18 +44,12 @@ public class StackManager : MonoBehaviour
             t.localPosition = new Vector3(0, 0.5f, 0);
             stackList.Insert(0, t);
             player.position += Vector3.up * jumpHeight;
-            stackCount++;
         }
         else if (other.CompareTag("Obstacle")) {
-            other.tag = "Untagged";
             AudioManagement.Vibrate();
             RemoveBall();
-            if (stackList.Count < 2) {
-                GameOverOnTrigger();
-            }
         }
         else if (other.CompareTag("Finish")) {
-            other.tag = "Untagged";
             AudioManagement.Vibrate();
             FinishedRemoveBall();
             logic.Won();
@@ -69,48 +60,80 @@ public class StackManager : MonoBehaviour
         if (stackList.Count > 0) {
             Transform bottomBall = stackList[0];
             stackList.RemoveAt(0);
-            
             bottomBall.SetParent(null);
 
-            Rigidbody rb = bottomBall.GetComponent<Rigidbody>();
-            rb.AddForce(Vector3.back * 1f, ForceMode.Impulse);
-
-            StartCoroutine(DelayFall());
+            if(stackList.Count > 0) {
+                StartCoroutine(DelayedStackFall());
+            } else {
+                GameOverOnTrigger();
+            }
         }
     }
 
-    IEnumerator DelayFall() {
-        yield return new WaitForSeconds(0.3f);
+    IEnumerator DelayedStackFall() {
+        yield return new WaitForSeconds(0.4f);
+        StartCoroutine(SmoothStackFall());
+    }
 
-        foreach (Transform ball in stackList) {
-            ball.localPosition -= Vector3.up * objHeight;
+    IEnumerator SmoothStackFall() {
+        Vector3 playerStartPos = player.localPosition;
+        Vector3 targetPos = playerStartPos - new Vector3(0, objHeight, 0);
+
+        List<Vector3> ballStartPos = new List<Vector3>();
+        List<Vector3> ballTargetPos = new List<Vector3>();
+
+        for (int i = 0; i < stackList.Count; i++) {
+            ballStartPos.Add(stackList[i].localPosition);
+            ballTargetPos.Add(stackList[i].localPosition - new Vector3(0, objHeight, 0));
         }
 
-        player.position -= Vector3.up * jumpHeight;
+        float elapsed = 0;
+        float duration = 0.2f;
+
+        while (elapsed < duration) {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            player.localPosition = Vector3.Lerp(playerStartPos, targetPos, t);
+            
+        for (int i = 0; i < stackList.Count; i++) {
+            stackList[i].localPosition = Vector3.Lerp(ballStartPos[i], ballTargetPos[i], t);
+        }
+
+        yield return null;
     }
+
+    player.localPosition = targetPos;
+    for (int i = 0; i < stackList.Count; i++) {
+        stackList[i].localPosition = ballTargetPos[i];
+    }
+}
+
 
     public void FinishedRemoveBall() {
         StartCoroutine(DelayFallFinish());
     }
 
     IEnumerator DelayFallFinish() {
-        while(stackList.Count > 0) {
+        while (stackList.Count > 0) {
             Transform bottomBall = stackList[0];
             stackList.RemoveAt(0);
             Destroy(bottomBall.gameObject);
 
+            yield return new WaitForSeconds(0.1f);
+
             foreach (Transform ball in stackList) {
-                yield return new WaitForSeconds(0.1f);
                 ball.localPosition -= Vector3.up * objHeight;
             }
 
+            yield return new WaitForSeconds(0.5f);
             player.position -= Vector3.up * jumpHeight;
         }
+        yield return new WaitForSeconds(0.3f);
         player.position = new Vector3(player.position.x, 0f, player.position.z);
     }
 
     void GameOverOnTrigger() {
         logic.GameOver();
     }
-
 }

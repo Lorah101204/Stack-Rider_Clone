@@ -17,6 +17,8 @@ public class PlayerMovement : MonoBehaviour
     private bool finished;
     private bool gameStarted = false;
 
+    private bool isOver = false;
+
     void Start() {
         rb = GetComponent<Rigidbody>(); 
         targetX = transform.position.x;
@@ -29,10 +31,12 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
+        if (isOver) return;
+
         rb.velocity = new Vector3(0, rb.velocity.y, speed);
 
         if (Input.GetKeyDown(KeyCode.LeftArrow)) {
-            Move(-1); 
+            Move(-1);   
         }
         if (Input.GetKeyDown(KeyCode.RightArrow)) {
             Move(1);
@@ -67,8 +71,8 @@ public class PlayerMovement : MonoBehaviour
         speed = 0f;
         rb.velocity = Vector3.zero;
         anim.SetBool("isFinished", true);
+        isOver = true;
     }
-
 
     void Move(int direction) {
         targetX += direction * laneWidth;

@@ -1,17 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class LogicScript : MonoBehaviour
 {
+
+    private LogicCollectable logicCol;
     public GameObject gameOverScreen;
     public GameObject winScreen;
     public GameObject settingScreen;
 
-    public void GameOver() {
+    void Start() {
+        Application.targetFrameRate = 60;
+        QualitySettings.vSyncCount = 0;
+    }
+
+    public void GameOver() 
+    {
         Time.timeScale = 0;
         gameOverScreen.SetActive(true);
+
     }
 
     public void Restart() {
