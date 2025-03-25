@@ -6,11 +6,12 @@ using UnityEngine.SceneManagement;
 
 public class LogicScript : MonoBehaviour
 {
-
-    private LogicCollectable logicCol;
+    [SerializeField] PlayerMovement playMove;
+    [SerializeField] Animator anim;
     public GameObject gameOverScreen;
     public GameObject winScreen;
     public GameObject settingScreen;
+
 
     void Start() {
         Application.targetFrameRate = 60;
@@ -19,9 +20,12 @@ public class LogicScript : MonoBehaviour
 
     public void GameOver() 
     {
-        Time.timeScale = 0;
+        playMove.finished = true;
+        playMove.speed = 0f;
+        playMove.rb.velocity = Vector3.zero;
+        playMove.isOver = true;
         gameOverScreen.SetActive(true);
-
+        anim.SetBool("isLost", true);
     }
 
     public void Restart() {

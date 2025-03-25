@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -12,12 +13,14 @@ public class PlayerMovement : MonoBehaviour
     public Transform finisher;
     public Animator anim;
 
-    private Rigidbody rb;
+    public Rigidbody rb;
     private float targetX;
-    private bool finished;
-    private bool gameStarted = false;
+    public bool finished;
+    public bool gameStarted = false;
 
-    private bool isOver = false;
+    public bool isOver = false;
+
+    
 
     void Start() {
         rb = GetComponent<Rigidbody>(); 
@@ -53,8 +56,8 @@ public class PlayerMovement : MonoBehaviour
 
         float newX = Mathf.Lerp(transform.position.x, targetX, Time.deltaTime * moveSpeed);
         transform.position = new Vector3(newX, transform.position.y, transform.position.z);
-
-        if (transform.position.z >= finisher.position.z) {
+        
+        if(transform.position.z >= finisher.position.z) {
             Finished();
         }
     }
@@ -66,7 +69,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    void Finished() {
+    public void Finished() {
         finished = true;
         speed = 0f;
         rb.velocity = Vector3.zero;
