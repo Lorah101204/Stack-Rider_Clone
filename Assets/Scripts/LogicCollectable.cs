@@ -35,7 +35,7 @@ public class LogicCollectable : MonoBehaviour
         float elapse = 0;
         Vector3 startPos = coin.transform.position;
 
-        while(elapse < coinDuration) {
+        while (elapse < coinDuration) {
             elapse += Time.deltaTime;
             float t = elapse / coinDuration;
             coin.transform.position = Vector3.Lerp(startPos, targetPos, t);

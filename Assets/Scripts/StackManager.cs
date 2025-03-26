@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting.Antlr3.Runtime.Collections;
 using UnityEngine;
 
 public class StackManager : MonoBehaviour
@@ -13,6 +12,8 @@ public class StackManager : MonoBehaviour
 
     float jumpHeight = 1f;
     float objHeight = 1f;
+
+    private bool ballRotate = true;
     List<Transform> stackList = new List<Transform>();
 
     private float rotateSpeed = 6f;
@@ -24,13 +25,22 @@ public class StackManager : MonoBehaviour
         firstBall.transform.localPosition = new Vector3(0, 0.5f, 0);
         stackList.Add(firstBall.transform);
         playerMovement = player.GetComponent<PlayerMovement>();
+
+        GameObject[] balls = GameObject.FindGameObjectsWithTag("Ball");
+        foreach (GameObject ball in balls) {
+            ParticleSystem ballParticle = ball.GetComponent<ParticleSystem>();
+            if (ballParticle != null) {
+                ballParticle.Stop();
+            }
+        }
     }
 
     void Update() {
-        for (int i = 0; i < stackList.Count; i++) {
-            float direction = (i % 2 == 0) ? -1f : 1f;
-            stackList[i].Rotate(direction * rotateSpeed, 0, 0, Space.World);
-            
+        if (ballRotate) {
+            for (int i = 0; i < stackList.Count; i++) {
+                float direction = (i % 2 == 0) ? -1f : 1f;
+                stackList[i].Rotate(direction * rotateSpeed, 0, 0, Space.World);
+            }
         }
     }
 
@@ -58,11 +68,13 @@ public class StackManager : MonoBehaviour
         else if (other.CompareTag("Finish")) {
             AudioManagement.Vibrate();
             FinishedRemoveBall();
+            ballRotate = false;
             cam.speed = -50f;
         }
     }
 
-    IEnumerator AddBall(Transform ball) {
+    IEnumerator AddBall(Transform ball) 
+    {
         Vector3 startPos = ball.localPosition;
         Vector3 endPos = new Vector3 (0, 0.5f, 0f);
 
@@ -126,8 +138,6 @@ public class StackManager : MonoBehaviour
         yield return null;
     }
 
-
-
     player.localPosition = targetPos;
     for (int i = 0; i < stackList.Count; i++) {
         stackList[i].localPosition = ballTargetPos[i];
@@ -142,6 +152,13 @@ public class StackManager : MonoBehaviour
     IEnumerator DelayFallFinish() {
         while (stackList.Count > 0) {
             Transform bottomBall = stackList[0];
+            
+            ParticleSystem ballPar = bottomBall.GetComponent<ParticleSystem>();
+            if (ballPar != null) {
+                ballPar.Play();
+                yield return new WaitForSeconds(ballPar.main.duration);
+            }
+
             stackList.RemoveAt(0);
             Destroy(bottomBall.gameObject);
 
@@ -179,8 +196,8 @@ public class StackManager : MonoBehaviour
 
             yield return new WaitForSeconds(0.25f);
         }
-        player.position = new Vector3(player.position.x, 0f, player.position.z);
         logic.Won();
+        player.position = new Vector3(player.position.x, 0f, player.position.z);
     }
 
     void GameOverOnTrigger() {
