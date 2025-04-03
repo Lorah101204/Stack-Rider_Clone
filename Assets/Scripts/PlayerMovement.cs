@@ -7,7 +7,7 @@ using UnityEngine.Scripting.APIUpdating;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float speed = 5f;
+    public float speed = 7.5f;
     public float moveSpeed = 5f;
     public float laneWidth = 2f;
     public Transform finisher;

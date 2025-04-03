@@ -8,6 +8,9 @@ public class LogicScript : MonoBehaviour
 {
     [SerializeField] PlayerMovement playMove;
     [SerializeField] Animator anim;
+
+    public string nextLevel;
+    public string restart;
     public GameObject gameOverScreen;
     public GameObject winScreen;
     public GameObject settingScreen;
@@ -30,7 +33,11 @@ public class LogicScript : MonoBehaviour
 
     public void Restart() {
         Time.timeScale = 1f;
-        SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadSceneAsync(restart);
+    }
+
+    public void NextLevel() {
+        SceneManager.LoadSceneAsync(nextLevel);
     }
 
     public void Won()

@@ -8,6 +8,7 @@ TagManager:
   - Ball
   - Obstacle
   - Finisher
+  - Fallout
   layers:
   - Default
   - TransparentFX

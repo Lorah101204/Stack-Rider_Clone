@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class EndLogic : MonoBehaviour
@@ -18,12 +17,13 @@ public class EndLogic : MonoBehaviour
     IEnumerator MoveToPosition(Transform player, Vector3 destination)
     {
         float elapsedTime = 0f;
-        float duration = 1.5f;
+        float duration = 1f;
 
         Vector3 startingPos = player.position;
         while (elapsedTime < duration) 
         {
-            player.position = Vector3.Lerp(startingPos, destination, elapsedTime / duration);
+            Vector3 newPosition = Vector3.Lerp(startingPos, destination, elapsedTime / duration);   
+            player.position = new Vector3(newPosition.x, startingPos.y, newPosition.z);
             elapsedTime += Time.deltaTime;
             yield return null; 
         }

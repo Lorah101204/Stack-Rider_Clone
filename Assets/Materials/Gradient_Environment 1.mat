@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Gradient_Environment
+  m_Name: Gradient_Environment 1
   m_Shader: {fileID: -6465566751694194690, guid: d6db078f885bddf428e73a34c1914809, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -53,6 +53,8 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
-    - _Color: {r: 0.6313726, g: 0.5490196, b: 0.8196079, a: 0}
-    - _Color1: {r: 0.98431367, g: 0.7607843, b: 0.9215686, a: 1}
+    - _BottomColor: {r: 0.078431346, g: 0.39215687, b: 0.7843137, a: 1}
+    - _Color: {r: 0.5764706, g: 0.64705884, b: 0.8117647, a: 1}
+    - _Color1: {r: 0.89411765, g: 0.9372549, b: 0.9137255, a: 1}
+    - _TopColor: {r: 0.7555547, g: 0, b: 1, a: 1}
   m_BuildTextureStacks: []
