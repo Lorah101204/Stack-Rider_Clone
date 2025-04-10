@@ -9,6 +9,14 @@ TagManager:
   - Obstacle
   - Finisher
   - Fallout
+  - Lava
+  - StartPlatform
+  - EndPlatform
+  - Road
+  - StackBall
+  - Obstacles
+  - Coins
+  - Spring
   layers:
   - Default
   - TransparentFX

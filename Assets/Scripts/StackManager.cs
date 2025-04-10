@@ -75,6 +75,14 @@ public class StackManager : MonoBehaviour
                 StartCoroutine(Fallout());
             }
         }
+        
+        else if (other.CompareTag("Lava"))
+        {
+            if (!isFall) {
+                isFall = true;
+                StartCoroutine(LavaFall());
+            }
+        }
 
         else if (other.CompareTag("Finish")) {
             AudioManagement.Vibrate();
@@ -86,7 +94,7 @@ public class StackManager : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Fallout")) {
+        if (other.CompareTag("Fallout") || other.CompareTag("Lava") && stackList.Count > 00) {
             isFall = false;
         }
     }
@@ -111,7 +119,7 @@ public class StackManager : MonoBehaviour
         stackList.Insert(0, ball);
     }
 
-    IEnumerator Fallout() {
+    IEnumerator LavaFall() {
         while (isFall && stackList.Count > 0) 
         {
             Transform bottomBall = stackList[0];
@@ -125,11 +133,13 @@ public class StackManager : MonoBehaviour
             }
             rb.isKinematic = false;
             rb.useGravity = true;
+            rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
 
-            Destroy(bottomBall.gameObject, 2f);
+            Destroy(bottomBall.gameObject, 0.1f);
 
             Vector3 playerStartPos = player.localPosition;
             Vector3 playerTargetPos = playerStartPos - new Vector3(0, objHeight, 0);
+            playerTargetPos.y = Mathf.Max(playerTargetPos.y, 0);
 
             List<Vector3> ballStartPos = new List<Vector3>();
             List<Vector3> ballTargetPos = new List<Vector3>();
@@ -148,7 +158,9 @@ public class StackManager : MonoBehaviour
                 elapsed += Time.deltaTime;
                 float t = elapsed / duration;
 
-                player.localPosition = Vector3.Lerp(playerStartPos, playerTargetPos, t);
+                Vector3 newPos = Vector3.Lerp(playerStartPos, playerTargetPos, t);
+                newPos.y = Mathf.Max(newPos.y, 0);
+                player.localPosition = newPos;
 
                 for (int i = 0; i < stackList.Count; i++) {
                     stackList[i].localPosition = Vector3.Lerp(ballStartPos[i], ballTargetPos[i], t);
@@ -163,10 +175,76 @@ public class StackManager : MonoBehaviour
                 stackList[i].localPosition = ballTargetPos[i];
             }
 
-            yield return new WaitForSeconds(0.05f);
+            yield return new WaitForSeconds(0.03f);
         }
         
-        if (stackList.Count == 0) 
+        if (stackList.Count < 2) 
+        {
+            GameOverOnTrigger();
+        }
+    }
+
+    IEnumerator Fallout() {
+        while (isFall && stackList.Count > 0) 
+        {
+            Transform bottomBall = stackList[0];
+            stackList.RemoveAt(0);
+            bottomBall.SetParent(null);
+
+            Rigidbody rb = bottomBall.GetComponent<Rigidbody>();
+            if (rb == null) 
+            {
+                rb = bottomBall.AddComponent<Rigidbody>();
+            }
+
+            rb.isKinematic = false;
+            rb.useGravity = true;
+            rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
+
+            Destroy(bottomBall.gameObject, 2f);
+
+            Vector3 playerStartPos = player.localPosition;
+            Vector3 playerTargetPos = playerStartPos - new Vector3(0, objHeight, 0);
+            playerTargetPos.y = Mathf.Max(playerTargetPos.y, 0);
+
+            List<Vector3> ballStartPos = new List<Vector3>();
+            List<Vector3> ballTargetPos = new List<Vector3>();
+
+            for (int i = 0; i < stackList.Count; i++) 
+            {
+                ballStartPos.Add(stackList[i].localPosition);
+                ballTargetPos.Add(stackList[i].localPosition - new Vector3(0, objHeight, 0));
+            }
+
+            float elapsed = 0f;
+            float duration = 0.2f;
+
+            while (elapsed < duration) 
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+
+                Vector3 newPos = Vector3.Lerp(playerStartPos, playerTargetPos, t);
+                newPos.y = Mathf.Max(newPos.y, 0);
+                player.localPosition = newPos;
+
+                for (int i = 0; i < stackList.Count; i++) {
+                    stackList[i].localPosition = Vector3.Lerp(ballStartPos[i], ballTargetPos[i], t);
+                }
+
+                yield return null;
+            }
+
+            player.localPosition = playerTargetPos;
+            for (int i = 0; i < stackList.Count; i++) 
+            {
+                stackList[i].localPosition = ballTargetPos[i];
+            }
+
+            yield return new WaitForSeconds(0.03f);
+        }
+        
+        if (stackList.Count < 2) 
         {
             GameOverOnTrigger();
         }
@@ -187,7 +265,7 @@ public class StackManager : MonoBehaviour
 
     IEnumerator DelayedStackFall() 
     {
-        yield return new WaitForSeconds(0.4f);
+        yield return new WaitForSeconds(0.35f);
         StartCoroutine(SmoothStackFall());
     }
 
@@ -257,50 +335,53 @@ public class StackManager : MonoBehaviour
             StartCoroutine(logicCol.PopupScore());
             logicCol.UpdateScoreUI();
 
-            Vector3 playerStartPos = player.position;
-            Vector3 playerTargetPos = playerStartPos - new Vector3(0, jumpHeight, 0);
-
-            List<Vector3> ballStartPos = new List<Vector3>();
-            List<Vector3> ballTargetPos = new List<Vector3>();
-
-            for (int i = 0; i < stackList.Count; i++) 
+            if (stackList.Count > 0) 
             {
-                ballStartPos.Add(stackList[i].position);
-                ballTargetPos.Add(stackList[i].position - new Vector3(0, objHeight, 0));
-            }
+            
+                Vector3 playerStartPos = player.position;
+                Vector3 playerTargetPos = playerStartPos - new Vector3(0, jumpHeight, 0);
 
-            float elapsed = 0;
-            float duration = 0.2f; 
-
-            while (elapsed < duration) 
-            {
-                elapsed += Time.deltaTime;
-                float t = elapsed / duration;
-
-                player.position = Vector3.Lerp(playerStartPos, playerTargetPos, t);
+                List<Vector3> ballStartPos = new List<Vector3>();
+                List<Vector3> ballTargetPos = new List<Vector3>();
 
                 for (int i = 0; i < stackList.Count; i++) 
                 {
-                    stackList[i].position = Vector3.Lerp(ballStartPos[i], ballTargetPos[i], t);
+                    ballStartPos.Add(stackList[i].position);
+                    ballTargetPos.Add(stackList[i].position - new Vector3(0, objHeight, 0));
                 }
 
-                yield return null;
-            }
+                float elapsed = 0;
+                float duration = 0.2f; 
 
-            player.position = playerTargetPos;
-            for (int i = 0; i < stackList.Count; i++) 
-            {
-                stackList[i].position = ballTargetPos[i];
-            }
+                while (elapsed < duration) 
+                {
+                    elapsed += Time.deltaTime;
+                    float t = elapsed / duration;
 
-            yield return new WaitForSeconds(0.25f);
+                    player.position = Vector3.Lerp(playerStartPos, playerTargetPos, t);
+
+                    for (int i = 0; i < stackList.Count; i++) 
+                    {
+                        stackList[i].position = Vector3.Lerp(ballStartPos[i], ballTargetPos[i], t);
+                    }
+
+                    yield return null;
+                }
+
+                player.position = playerTargetPos;
+                for (int i = 0; i < stackList.Count; i++) 
+                {
+                    stackList[i].position = ballTargetPos[i];
+                }
+
+                yield return new WaitForSeconds(0.25f);
+            }
         }
 
         logic.Won();
 
         player.position = new Vector3(player.position.x, endlogic.targetPosition.position.y, player.position.z);
     }
-
 
     void GameOverOnTrigger() {
         StopAllCoroutines();

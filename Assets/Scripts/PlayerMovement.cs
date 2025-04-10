@@ -1,37 +1,65 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
+
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
 
 public class PlayerMovement : MonoBehaviour
 {
     public float speed = 7.5f;
     public float moveSpeed = 5f;
     public float laneWidth = 2f;
+    public float jumpForce = 15f;
+    public float fallSpeed = 10f;
+
     public Transform finisher;
     public Animator anim;
-
     public Rigidbody rb;
+
     private float targetX;
     public bool finished;
-    public bool gameStarted = false;
 
+    public bool isFalling = false;
+    private float currentHeight = 0f;
+    private float maxJumpHeight;
+    public bool gameStarted = false;
     public bool isOver = false;
 
-    
-
-    void Start() {
+    void Start() 
+    {
         rb = GetComponent<Rigidbody>(); 
         targetX = transform.position.x;
         anim.SetBool("isRunning", false);
     }
 
-    void Update() {
+    void Update() 
+    {
         if (!gameStarted) {
             CheckForStart();
             return;
+        }
+
+        if (currentHeight > 0)
+        {
+            float jumpStep = jumpForce * Time.deltaTime;
+            transform.position += Vector3.up * jumpStep;
+            currentHeight -= jumpStep;
+
+            if (currentHeight <= 0)
+            {
+                isFalling = true;
+            }
+        }
+        else if (isFalling)
+        {
+            float fallStep = fallSpeed * Time.deltaTime;
+            transform.position -= Vector3.up * fallStep;
+
+            if (transform.position.y <= 0f)
+            {
+                Vector3 pos = transform.position;
+                pos.y = 0f;
+                transform.position = pos;
+
+                isFalling = false;
+            }
         }
 
         if (isOver) return;
@@ -57,12 +85,27 @@ public class PlayerMovement : MonoBehaviour
         float newX = Mathf.Lerp(transform.position.x, targetX, Time.deltaTime * moveSpeed);
         transform.position = new Vector3(newX, transform.position.y, transform.position.z);
         
-        if(transform.position.z >= finisher.position.z) {
+        if (transform.position.z >= finisher.position.z) 
+        {
             Finished();
         }
     }
 
-    void CheckForStart() {
+    void OnTriggerEnter(Collider other) {
+        if (other.CompareTag("Spring")) {
+            Jump();
+        }
+    }
+
+    public void Jump() 
+    {
+        if (isFalling || currentHeight > 0) return;
+        currentHeight = jumpForce;
+        isFalling = false;
+    }
+
+    void CheckForStart() 
+    {
         if (Input.touchCount > 0 || Input.GetKeyDown(KeyCode.Space)) {
             gameStarted = true;
             anim.SetBool("isRunning", true);
